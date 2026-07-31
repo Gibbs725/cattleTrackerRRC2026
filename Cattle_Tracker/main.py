@@ -10,19 +10,7 @@ from ultralytics import solutions
 pd.read_excel("files/2026-06-26_AnimalUpload.xlsx")
 df=pd.read_excel("files/2026-06-26_AnimalUpload.xlsx",
                  header=1)
-#print(os.path.exists("files/2026-06-26_AnimalUpload.xlsx")) #verify that its real
-#print(df.columns) #dataFrame, printing coloumns on row 1, "df" is raw spreadsheet, "eid_df" is filtered by full cells
-#print(df.iloc[0,3])
-#print(df["EID*"].isna().sum()) #Counts the total number of EIDs are missing (is Not Applicable)
-eid_df = df[df["EID*"].notna()] #Filters out "isna" from "notna", obviously
 longID=124000192476682                      #DEBUG'D
-#print(df["EID*"].iloc[0])                      #DEBUG'D
-#print(type(df["EID*"].iloc[0]))                        #DEBUG'D
-#print(eid_df["EID*"].iloc[0])                      #DEBUG'D
-#print(type(eid_df["EID*"].iloc[0]))                        #DEBUG'D
-#eid = int(input("Enter EID: "))                        #DEBUG'D
-#print(type(eid))                       #DEBUG'D
-#eid= int(input("Enter EID: "))                     #DEBUG'D
 while True:
     try:
         eid = int(input("Enter EID: "))
@@ -37,30 +25,22 @@ while True:
         continue
     except ValueError:
         print("Invalid EID")
-
-#print(Cow_ID)
-
-#print(cow)
-
-#print(Cow_ID.to_string())
-
 #End Reading from the Excel Sheet#
 
 
-
 #Camera 1 initialization#
-#cam1 = "Camera 1"
-#
-#v2.namedWindow(cam1)
-#ap1 = cv2.VideoCapture(0)
-#model = YOLO('yolo26n.pt')
-#
-#ssert cap1.isOpened(), "Error reading camera"
-#f cap1.open(0):
-#    ret, frame = cap1.read()
-#else:
-#    ret = False
-#
+cam1 = "Camera 1"
+
+v2.namedWindow(cam1)
+ap1 = cv2.VideoCapture(0)
+model = YOLO('yolo26n.pt')
+
+assert cap1.isOpened(), "Error reading camera"
+if cap1.open(0):
+    ret, frame = cap1.read()
+else:
+    ret = False
+
 #cam2 = "Camera 2"
 #cv2.namedWindow(cam2)
 #cap2 = cv2.VideoCapture(1)

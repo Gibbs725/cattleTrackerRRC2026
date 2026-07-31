@@ -108,11 +108,19 @@ while cap1.isOpened():
     #print (dir(results))
     track_results= model.track(frame, persist=True, classes=[0])
     track_ids = track_results[0].boxes[0].id
+
     for track_id in track_ids:
         track_id = int(track_id.item())
-        #print(track_id)
-    #tracked_animals[track_id] = animal_record
-    #print(track_results[0].boxes.id)
+
+        if track_id not in tracked_animals:
+            tracked_animals[track_id] = {
+                "State": "Unknown",
+                "Location": "Unknown",
+            }
+        else: tracked_animals[track_id]["State"] = "Detected"
+        # print(track_id)
+    # tracked_animals[track_id] = animal_record
+    # print(track_results[0].boxes.id)
     #print(track_results[0].boxes.cls)
     #print(track_results[0].boxes.conf)
     current_testpen=results.region_counts["TESTPEN"]
@@ -121,17 +129,10 @@ while cap1.isOpened():
     else:
         if previous_testpen == 0 and current_testpen == 1:
             print("Track ID ", track_id, "Entered TESTPEN")
-            tracked_animals[track_id]={
-                "State": "Detected",
-                "Location": "TESTPEN"
-            }
+            tracked_animals[track_id]["Location"] = "TESTPEN"
         if previous_testpen == 1 and current_testpen == 0:
             print("Track ID ", track_id, "Exited TESTPEN")
-            tracked_animals[track_id]={
-                "State": "Detected",
-                "Location": "Unknown"
-            }
-
+            tracked_animals[track_id]["Location"] = "Unknown"
     previous_testpen=current_testpen
     #print(dir(track_results[0]))
     g, h, i, j = results.region_counts.values()

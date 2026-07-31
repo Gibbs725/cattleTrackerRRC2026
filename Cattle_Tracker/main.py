@@ -10,6 +10,7 @@ from ultralytics import solutions
 pd.read_excel("files/2026-06-26_AnimalUpload.xlsx")
 df=pd.read_excel("files/2026-06-26_AnimalUpload.xlsx",
                  header=1)
+eid_df = df[df["EID*"].notna()] #Filters out "isna" from "notna", obviously
 longID=124000192476682                      #DEBUG'D
 while True:
     try:
@@ -25,21 +26,23 @@ while True:
         continue
     except ValueError:
         print("Invalid EID")
+
 #End Reading from the Excel Sheet#
 
 
+
 #Camera 1 initialization#
-cam1 = "Camera 1"
-
-v2.namedWindow(cam1)
-ap1 = cv2.VideoCapture(0)
-model = YOLO('yolo26n.pt')
-
-assert cap1.isOpened(), "Error reading camera"
-if cap1.open(0):
-    ret, frame = cap1.read()
-else:
-    ret = False
+#cam1 = "Camera 1"
+#
+#v2.namedWindow(cam1)
+#ap1 = cv2.VideoCapture(0)
+#model = YOLO('yolo26n.pt')
+#
+#assert cap1.isOpened(), "Error reading camera"
+#if cap1.open(0):
+#    ret, frame = cap1.read()
+#else:
+#    ret = False
 
 #cam2 = "Camera 2"
 #cv2.namedWindow(cam2)

@@ -7,7 +7,7 @@ from ultralytics import YOLO
 from ultralytics import solutions
 
 #Reading from the Excel Sheet#
-pd.read_excel("files/2026-06-26_AnimalUpload.xlsx")
+#pd.read_excel("files/2026-06-26_AnimalUpload.xlsx")
 df=pd.read_excel("files/2026-06-26_AnimalUpload.xlsx",
                  header=1)
 eid_df = df[df["EID*"].notna()] #Filters out "isna" from "notna", obviously

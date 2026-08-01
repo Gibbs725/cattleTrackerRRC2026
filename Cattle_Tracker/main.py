@@ -122,7 +122,7 @@ Pen_Regions=solutions.RegionCounter(
     model="yolo26n.pt",
     line_width=(1),
     classes=[0,16,19], #Humans, Dogs, Cows
-    verbose= True,
+    verbose= False,
     conf= 0.50,
     show_boxes=False,
     show_labels=False
@@ -164,6 +164,7 @@ while cap1.isOpened():
 
                     if track_id in tracked_animals and "AnimalID" in tracked_animals[track_id]:
                         label =(
+                            f"Track:{track_id}"
                             f"ID:{tracked_animals[track_id]['AnimalID']}"
                             f" Gen:{tracked_animals[track_id]['Stock']}")
                     else:

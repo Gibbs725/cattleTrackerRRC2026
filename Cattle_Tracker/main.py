@@ -6,7 +6,6 @@ from sympy.printing.pretty.pretty_symbology import line_width
 from ultralytics import YOLO
 from ultralytics import solutions
 import threading
-#
 
 #Setup Variables
 
@@ -16,16 +15,15 @@ Current_CHHI_Track= None
 frame_counter = 0
 latest_EID= None
 local_cow=None
+tracked_animals = {}
+
+
 #Reading from the Excel Sheet#
 #pd.read_excel("files/2026-06-26_AnimalUpload.xlsx")
 df=pd.read_excel("files/2026-06-26_AnimalUpload.xlsx",
                  header=1)
 eid_df = df[df["EID*"].notna()] #Filters out "isna" from "notna", obviously
 longID=124000192476682                      #DEBUG'D
-
-tracked_animals = {}
-
-
 
 
 #RFID MultiThread
@@ -125,7 +123,10 @@ Pen_Regions=solutions.RegionCounter(
     line_width=(1),
     classes=[0,16,19], #Humans, Dogs, Cows
     verbose= True,
-    conf= 0.50)
+    conf= 0.50,
+    show_boxes=False,
+    show_labels=False
+    )
 
 #Camera Loop
 while cap1.isOpened():
@@ -150,10 +151,33 @@ while cap1.isOpened():
 
 #Protects against "No Detect" issues
     if len(track_results)>0:
-        track_ids = track_results[0].boxes.id
-        if track_ids is not None:
-            for track_id in track_ids:
-                track_id = int(track_id.item())
+        BoundBox = track_results[0].boxes
+        if len(BoundBox)>0:
+            track_ids=BoundBox.id
+            if track_ids is not None:
+                for i, track_id in enumerate(track_ids):
+                    track_id = int(track_id.item())
+                    # Custom Bounding Boxes
+                    BoundBox = track_results[0].boxes.xyxy[i]
+                    x1, y1, x2, y2 = map(int, BoundBox)
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), color=(0, 255, 0), thickness=2)
+
+                    if track_id in tracked_animals and "AnimalID" in tracked_animals[track_id]:
+                        label =(
+                            f"ID:{tracked_animals[track_id]['AnimalID']}"
+                            f" Gen:{tracked_animals[track_id]['Stock']}")
+                    else:
+                        label = f"Track: {track_id}"
+                    print(label)
+                    cv2.putText(
+                        frame,
+                        label,
+                        (x1, y1 - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6,
+                        (0, 255, 0),
+                        2
+                    )
 
 #Creates New Track ID
                 if track_id not in tracked_animals:
@@ -200,11 +224,13 @@ while cap1.isOpened():
                     tracked_animals[Current_Entry_Track]["AnimalID"] = local_cow["Animal ID"]
                     tracked_animals[Current_Entry_Track]["Breed"]= local_cow["Breed"]
                     tracked_animals[Current_Entry_Track]["State"] = "Classified"
+                    tracked_animals[Current_Entry_Track]["Stock"] = local_cow["Stock Class"]
                     print(
                         f"Attached EID: {latest_EID}"
                         f"To Track ID: {Current_Entry_Track}"
                     )
                     latest_EID = None
+
 #Clears the Global EID ready for the next scan input
                 print(track_id)
                 print(tracked_animals)
@@ -212,6 +238,9 @@ while cap1.isOpened():
     else:
         pass
 #Escape
+    #print(type(results.plot_im))
+    #print(results.plot_im.shape)
+    #print((results.plot_im == frame.all))
     cv2.imshow(Camera, frame)
     # tracked_animals[track_id] = animal_record
     # print(track_results[0].boxes.id)

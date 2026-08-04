@@ -122,10 +122,10 @@ Pen_Regions=solutions.RegionCounter(
     model="yolo26n.pt",
     line_width=(1),
     classes=[0,16,19], #Humans, Dogs, Cows
-    verbose= False,
+    verbose= True,
     conf= 0.50,
-    show_boxes=False,
-    show_labels=False
+    show_boxes=True,
+    show_labels=True
     )
 
 #Camera Loop
@@ -142,7 +142,11 @@ while cap1.isOpened():
     #print (results.total_tracks)
     #print (results.region_counts)
     #print (dir(results))
-    track_results= model.track(frame, persist=True, classes=[0]) #0 is Human
+    track_results= model.track(frame, persist=True, classes=[0,16,19]) #0 is Human
+    print(track_results[0].boxes.cls)
+    print(track_results[0].boxes.id)
+    print(len(track_results[0].boxes))
+    print(track_results[0].boxes.data)
     tracks_to_remove=[]
 
 #Checks for the Global RFID input
@@ -154,11 +158,36 @@ while cap1.isOpened():
         BoundBox = track_results[0].boxes
         if len(BoundBox)>0:
             track_ids=BoundBox.id
+            print("Boxes:", len(BoundBox))
+            print("IDs:", BoundBox.id)
+            if len(BoundBox)>0:
+                print("Classes: ", BoundBox.cls)
+
             if track_ids is not None:
                 for i, track_id in enumerate(track_ids):
                     track_id = int(track_id.item())
+# Creates New Track ID
+                    cls = int(track_results[0].boxes.cls[i].item())
+                    if track_id not in tracked_animals:
+                        tracked_animals[track_id] = {
+                            "State": "Unknown",
+                            "Location": "Unknown",
+                            "LastSeen": frame_counter,
+                            "Class":cls
+                        }
+                    #Debug
+
+                    print(
+                        "Track: ", track_id,
+                        "Class: ", cls,
+                        "In Registry: ", track_id in tracked_animals
+                    )
+                    #
                     # Custom Bounding Boxes
                     BoundBox = track_results[0].boxes.xyxy[i]
+                    #Debug
+                    #print("Track: ", track_id, "Exists: ", track_id in tracked_animals)
+                    #
                     x1, y1, x2, y2 = map(int, BoundBox)
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color=(0, 255, 0), thickness=2)
 
@@ -179,14 +208,7 @@ while cap1.isOpened():
                         (0, 255, 0),
                         2
                     )
-
-#Creates New Track ID
-                if track_id not in tracked_animals:
-                    tracked_animals[track_id] = {
-                        "State": "Unknown",
-                        "Location": "Unknown",
-                        "LastSeen": frame_counter,
-                    }
+                    print(track_results[0].boxes.cls)
 #Sets "Freshness"
                 tracked_animals[track_id]["LastSeen"] = frame_counter
 #Cleanup old tracks

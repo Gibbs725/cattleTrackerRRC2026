@@ -128,6 +128,7 @@ Pen_Regions=solutions.RegionCounter(
     show_labels=True
     )
 
+
 #Camera Loop
 while cap1.isOpened():
     ret, frame = cap1.read()

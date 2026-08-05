@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['Zitze']
+
+roboflow:
+  workspace: yolo-i6o6p
+  project: cow-udder-teats-o6xjm-cptpb
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/yolo-i6o6p/cow-udder-teats-o6xjm-cptpb/dataset/1

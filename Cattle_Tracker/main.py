@@ -50,7 +50,6 @@ def rfid_listener():
 threading.Thread(target=rfid_listener, daemon=True).start()
 #End RFID MultiThreader
 
-
 #while True:
 #    try:
 #        #eid = 124000192476682 #int(input("Enter EID: "))
@@ -70,29 +69,31 @@ threading.Thread(target=rfid_listener, daemon=True).start()
 #Logging stuff#
 
 
-
 #Camera 1 initialization#
 Camera = "Camera 1"
-
 cv2.namedWindow(Camera)
-cap1 = cv2.VideoCapture(0)
 model = YOLO('yolo26n.pt')
+cap1 = cv2.VideoCapture(0)
 
 assert cap1.isOpened(), "Error reading camera"
 if cap1.open(0):
-    ret, frame = cap1.read()
+    ret1, frame1 = cap1.read()
 else:
-    ret = False
-#End Camera 1 i#
+    ret1 = False
+#End Camera 1 #
 
-#cam2 = "Camera 2"
-#cv2.namedWindow(cam2)
-#cap2 = cv2.VideoCapture(1)
-#assert cap2.isOpened(), "Error reading camera 2"
-#if cap2.open(1):
-#    ret2, frame = cap2.read()
-#else:
-#    ret2 = False
+
+#Begin Camera 2#
+GenCam = "Camera 2"
+cv2.namedWindow(GenCam)
+cap2 = cv2.VideoCapture(1)
+udder_model = YOLO("runs/detect/train-2/weights/best.pt")
+assert cap2.isOpened(), "Error reading camera 2"
+if cap2.open(1):
+    ret2, frame2 = cap2.read()
+else:
+    ret2 = False
+#End Camera 2 #
 
 ######## Pen Regions for Camera 1
 
@@ -130,24 +131,25 @@ Pen_Regions=solutions.RegionCounter(
 
 
 #Camera Loop
-while cap1.isOpened():
-    ret, frame = cap1.read()
-    if not ret:
+while cap1.isOpened() and cap2.isOpened():
+    ret1, frame1 = cap1.read()
+    ret2, frame2 = cap2.read()
+    if not ret1 or not ret2:
         print("Video frame is empty or processing is complete.")
         break
 
 #Camera/CV Related
     frame_counter+=1
-    results = Pen_Regions(frame)
+    results = Pen_Regions(frame1)
     #print (results)
     #print (results.total_tracks)
     #print (results.region_counts)
     #print (dir(results))
-    track_results= model.track(frame, persist=True, classes=[0,16,19]) #0 is Human
-    print(track_results[0].boxes.cls)
-    print(track_results[0].boxes.id)
-    print(len(track_results[0].boxes))
-    print(track_results[0].boxes.data)
+    track_results= model.track(frame1, persist=True, classes=[0,16,19]) #0 is Human
+    #print(track_results[0].boxes.cls)
+    #print(track_results[0].boxes.id)
+    #print(len(track_results[0].boxes))
+    #print(track_results[0].boxes.data)
     tracks_to_remove=[]
 
 #Checks for the Global RFID input
@@ -190,7 +192,7 @@ while cap1.isOpened():
                     #print("Track: ", track_id, "Exists: ", track_id in tracked_animals)
                     #
                     x1, y1, x2, y2 = map(int, BoundBox)
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), color=(0, 255, 0), thickness=2)
+                    cv2.rectangle(frame1, (x1, y1), (x2, y2), color=(0, 255, 0), thickness=2)
 
                     if track_id in tracked_animals and "AnimalID" in tracked_animals[track_id]:
                         label =(
@@ -201,7 +203,7 @@ while cap1.isOpened():
                         label = f"Track: {track_id}"
                     print(label)
                     cv2.putText(
-                        frame,
+                        frame1,
                         label,
                         (x1, y1 - 10),
                         cv2.FONT_HERSHEY_SIMPLEX,
@@ -259,13 +261,44 @@ while cap1.isOpened():
                 print(track_id)
                 print(tracked_animals)
                 print("frame: ", frame_counter)
+#Start Camera 2 Teat Detect
+                udder_results = udder_model(frame2)
+                teatBox = udder_results[0].boxes
+                if len(teatBox) > 0:
+                    for i in range(len(teatBox)):
+                        # Debug
+                        conf= float(teatBox.conf[i])
+                        label2 = f"Teat: {conf:.2f}"
+
+                        box = (teatBox.xyxy[i])
+                        x1, y1, x2, y2 = map(int, box)
+                        cv2.rectangle(frame2, (x1, y1), (x2, y2), color=(0, 255, 0), thickness=2)
+
+                        cv2.putText(
+                            frame2,
+                            label2,
+                            (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.5,
+                            (120, 235, 67),
+                            2
+                        )
+                else:
+                    pass
+#End Camera 2 Teat Detect
+                print("Camera 2 is Running")
+                print(udder_results)
+                #if len(udder_results) > 0:
+                print(udder_results[0].boxes.cls)
+                print(len(udder_results[0].boxes))
+                print("Teat Count: ", len(teatBox))
     else:
         pass
 #Escape
     #print(type(results.plot_im))
     #print(results.plot_im.shape)
-    #print((results.plot_im == frame.all))
-    cv2.imshow(Camera, frame)
+    #print((results.plot_im == frame1.all))
+    cv2.imshow(Camera, frame1)
     # tracked_animals[track_id] = animal_record
     # print(track_results[0].boxes.id)
     #print(track_results[0].boxes.cls)
@@ -278,7 +311,7 @@ while cap1.isOpened():
 
 
     #ret2, frame2 = cap2.read()
-    #cv2.imshow(cap2, frame2)
+    cv2.imshow(GenCam, frame2)
 
     #print(results.total_tracks, results.region_counts.values())
     #for (x, y, z) in results.region_counts.values():
@@ -286,5 +319,5 @@ while cap1.isOpened():
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 cap1.release()
-#cap2.release()
+cap2.release()
 cv2.destroyAllWindows()

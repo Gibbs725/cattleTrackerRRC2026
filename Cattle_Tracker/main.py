@@ -264,6 +264,7 @@ while cap1.isOpened() and cap2.isOpened():
 #Start Camera 2 Teat Detect
                 udder_results = udder_model(frame2)
                 teatBox = udder_results[0].boxes
+                udder_count= len(udder_results[0].boxes)
                 if len(teatBox) > 0:
                     for i in range(len(teatBox)):
                         # Debug
@@ -283,6 +284,10 @@ while cap1.isOpened() and cap2.isOpened():
                             (120, 235, 67),
                             2
                         )
+                if udder_count >=2:
+                    print("Gender Assessment: Female")
+                else: print("Gender Assessment: Male")
+
                 else:
                     pass
 #End Camera 2 Teat Detect
